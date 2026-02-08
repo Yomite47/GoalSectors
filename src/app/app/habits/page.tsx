@@ -39,7 +39,7 @@ function HabitsContent() {
     }
 
     return (
-        <div className="pb-24">
+        <div className="pb-32">
             {isLoading && (
                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
                      <div className="animate-pulse text-yellow-600 font-medium">Loading habits...</div>

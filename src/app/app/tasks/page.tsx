@@ -133,7 +133,7 @@ function TasksContent() {
     const isToday = selectedDate === new Date().toISOString().split('T')[0];
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="min-h-screen bg-gray-50 pb-32">
             {/* Header / Date Picker */}
             <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
                 <div className="flex items-center justify-between max-w-lg mx-auto">

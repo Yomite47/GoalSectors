@@ -29,7 +29,7 @@ export default function GoalsPage() {
 
   return (
     <SectorGuard sector="Goals">
-      <div className="space-y-6 pb-20">
+      <div className="space-y-6 pb-32">
         {isLoading && (
              <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
                  <div className="animate-pulse text-blue-600 font-medium">Loading goals...</div>
