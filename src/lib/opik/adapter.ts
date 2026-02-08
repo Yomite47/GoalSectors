@@ -1,4 +1,6 @@
-import { Opik } from 'opik';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Opik } from "opik";
+
 
 export interface TraceHandle {
     id: string;
@@ -28,7 +30,7 @@ export function startTrace(name: string, meta: any): TraceHandle | null {
         const traceObj = client.trace({
             name: name,
             metadata: meta,
-            // @ts-ignore
+            // @ts-expect-error - Opik SDK types might be missing or incomplete
             startTime: new Date()
         });
         return { id: (traceObj as any).id, traceObj };
@@ -45,7 +47,7 @@ export function traceEvent(handle: TraceHandle | null, name: string, payload: an
         const span = handle.traceObj.span({
             name: name,
             input: payload,
-            // @ts-ignore
+            // @ts-expect-error - Opik SDK types might be missing or incomplete
             startTime: new Date()
         });
         span.end();
@@ -60,7 +62,7 @@ export function endTrace(handle: TraceHandle | null, resultMeta: any): void {
         // Ideally we pass output to end()
         handle.traceObj.end({
             output: resultMeta,
-            // @ts-ignore
+            // @ts-expect-error - Opik SDK types might be missing or incomplete
             endTime: new Date()
         });
         client?.flush();

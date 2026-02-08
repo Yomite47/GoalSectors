@@ -6,7 +6,7 @@ export class SupabaseStore implements DataStore {
     async getOrCreateUser(userId: string): Promise<void> {
         if (!supabase) throw new Error('Supabase client not initialized');
         
-        const { data, error } = await supabase
+        const { data } = await supabase
             .from('users')
             .select('id')
             .eq('id', userId)
@@ -26,7 +26,7 @@ export class SupabaseStore implements DataStore {
             .eq('user_id', userId)
             .eq('enabled', true);
             
-        return data ? data.map((row: any) => row.sector) : [];
+        return data ? data.map((row: { sector: string }) => row.sector) : [];
     }
 
     async setEnabledSectors(userId: string, sectors: string[]): Promise<void> {
@@ -77,7 +77,7 @@ export class SupabaseStore implements DataStore {
     async createMilestone(userId: string, goalId: string, title: string, targetDateISO?: string | null, createdBy: 'user'|'ai' = 'user', sourceRunId?: string | null): Promise<Milestone> {
         if (!supabase) throw new Error('Supabase client not initialized');
         
-        const payload: any = { 
+        const payload: Record<string, unknown> = { 
             user_id: userId, 
             goal_id: goalId, 
             title, 
@@ -149,7 +149,7 @@ export class SupabaseStore implements DataStore {
         if (!supabase) throw new Error('Supabase client not initialized');
         
         // Construct payload dynamically to avoid sending fields that might not exist in older schema versions
-        const payload: any = { 
+        const payload: Record<string, unknown> = { 
             user_id: userId, 
             title, 
             due_date: dueDateISO, 
@@ -206,7 +206,7 @@ export class SupabaseStore implements DataStore {
     async createHabit(userId: string, title: string, frequency: 'daily' = 'daily', createdBy: 'user'|'ai' = 'user', sourceRunId?: string | null): Promise<Habit> {
         if (!supabase) throw new Error('Supabase client not initialized');
         
-        const payload: any = { 
+        const payload: Record<string, unknown> = { 
             user_id: userId, 
             title, 
             frequency
@@ -270,7 +270,7 @@ export class SupabaseStore implements DataStore {
             .gte('done_date', fromISO)
             .lte('done_date', toISO);
             
-        return (data || []).map((row: any) => row.done_date);
+        return (data || []).map((row: { done_date: string }) => row.done_date);
     }
 
     async getHabitStreaks(userId: string): Promise<HabitStreak[]> {
@@ -281,13 +281,7 @@ export class SupabaseStore implements DataStore {
         const streaks: HabitStreak[] = [];
         
         for (const habit of habits) {
-             const { data: logs } = await supabase
-                .from('habit_logs')
-                .select('done_date')
-                .eq('habit_id', habit.id)
-                .order('done_date', { ascending: false });
-             
-             // ... Logic same as LocalStore ...
+             // Logic would be here
              streaks.push({ habitId: habit.id, currentStreak: 0, lastDoneDate: null });
         }
         return streaks;
@@ -338,7 +332,7 @@ export class SupabaseStore implements DataStore {
 
         if (!runs) return [];
 
-        return runs.map((r: any) => ({
+        return runs.map((r: AiRunWithEval & { ai_evals?: AiEval[]; ai_feedback?: AiFeedback[] }) => ({
             ...r,
             eval: r.ai_evals?.[0] || undefined,
             feedback: r.ai_feedback?.[0] || undefined
@@ -415,7 +409,7 @@ export class SupabaseStore implements DataStore {
             
         if (!data || data.length === 0) return { helpfulRate: 0, total: 0 };
         
-        const helpfulCount = data.filter((row: any) => row.helpful).length;
+        const helpfulCount = data.filter((row: { helpful: boolean }) => row.helpful).length;
         return {
             helpfulRate: Math.round((helpfulCount / data.length) * 100),
             total: data.length
@@ -439,10 +433,10 @@ export class SupabaseStore implements DataStore {
             .eq('created_by', 'ai');
 
         let completedWithin24h = 0;
-        let total = (tasks?.length || 0) + (habits?.length || 0);
+        const total = (tasks?.length || 0) + (habits?.length || 0);
 
         if (tasks) {
-            tasks.forEach((t: any) => {
+            tasks.forEach((t: { status: string }) => {
                 if (t.status === 'completed') completedWithin24h++;
             });
         }

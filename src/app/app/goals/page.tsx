@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useUser } from '@/lib/store';
-import { SectorGuard } from '@/components/SectorGuard';
 import { Plus, Calendar, Target, ChevronRight, X, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 

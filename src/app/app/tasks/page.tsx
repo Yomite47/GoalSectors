@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useUser } from '@/lib/store';
-import { SectorGuard } from '@/components/SectorGuard';
 import { Task } from '@/types';
 import { 
     Calendar, 
@@ -18,9 +17,7 @@ import {
 
 export default function TasksPage() {
     return (
-        <SectorGuard sector="Productivity">
-            <TasksContent />
-        </SectorGuard>
+        <TasksContent />
     );
 }
 

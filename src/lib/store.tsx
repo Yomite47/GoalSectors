@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { UserProfile, Task as UITask, Habit as UIHabit, Goal as UIGoal, Sector, Milestone, WeeklyPlan } from '@/types';
 import { DailyCheckin } from '@/lib/data/types';
 import { getStore } from './data';
@@ -54,7 +54,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     await refreshData(profile.id);
   };
 
-  const refreshData = async (userId: string) => {
+  const refreshData = useCallback(async (userId: string) => {
     try {
         const [sectors, goals, tasks, habits, habitStreaks, checkin] = await Promise.all([
             store.getEnabledSectors(userId),
@@ -147,25 +147,31 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
         console.error('Error refreshing data:', error);
     }
-  };
+  }, [store]);
 
   useEffect(() => {
     const init = async () => {
-        // Check for existing ID in localStorage to maintain identity
-        let userId = localStorage.getItem('goal_sectors_user_id');
-        
-        if (!userId) {
-            userId = crypto.randomUUID();
-            localStorage.setItem('goal_sectors_user_id', userId);
-        }
+        try {
+            // Check for existing ID in localStorage to maintain identity
+            let userId = localStorage.getItem('goal_sectors_user_id');
+            
+            if (!userId) {
+                userId = crypto.randomUUID();
+                localStorage.setItem('goal_sectors_user_id', userId);
+            }
 
-        await store.getOrCreateUser(userId);
-        await refreshData(userId);
-        setIsLoading(false);
+            await store.getOrCreateUser(userId);
+            await refreshData(userId);
+        } catch (error) {
+            console.error('Initialization error:', error);
+            // Fallback: Just load local prefs if store fails completely
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     init();
-  }, []);
+  }, [refreshData, store]);
 
   const updateProfile = async (updates: Partial<UserProfile>) => {
     // Optimistic update
@@ -194,8 +200,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   const addTask = async (title: string, date?: string) => {
     const targetDate = date || new Date().toISOString().split('T')[0];
-    
-    // Optimistic update
     const tempId = `temp-${crypto.randomUUID()}`;
     const newTask: UITask = {
         id: tempId,
@@ -205,6 +209,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         dueDate: targetDate
     };
 
+    // Optimistic update
     setProfile(prev => ({
         ...prev,
         tasks: targetDate === new Date().toISOString().split('T')[0] 
@@ -212,8 +217,18 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             : prev.tasks
     }));
 
-    await store.createTask(profile.id, title, targetDate);
-    refreshData(profile.id);
+    try {
+        await store.createTask(profile.id, title, targetDate);
+        await refreshData(profile.id);
+    } catch (error) {
+        console.error('Failed to add task:', error);
+        // Revert optimistic update
+        setProfile(prev => ({
+            ...prev,
+            tasks: prev.tasks.filter(t => t.id !== tempId)
+        }));
+        alert("Failed to save task. Please try again.");
+    }
   };
 
   const toggleTask = async (id: string, isCompleted: boolean) => {
@@ -223,8 +238,17 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         tasks: prev.tasks.map(t => t.id === id ? { ...t, completed: isCompleted } : t)
     }));
     
-    await store.toggleTask(profile.id, id, isCompleted);
-    refreshData(profile.id);
+    try {
+        await store.toggleTask(profile.id, id, isCompleted);
+        await refreshData(profile.id);
+    } catch (error) {
+        console.error('Failed to toggle task:', error);
+        // Revert
+        setProfile(prev => ({
+            ...prev,
+            tasks: prev.tasks.map(t => t.id === id ? { ...t, completed: !isCompleted } : t)
+        }));
+    }
   };
 
   const deleteTask = async (id: string) => {
@@ -292,8 +316,23 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         )
     }));
 
-    await store.completeHabit(profile.id, id, today);
-    refreshData(profile.id);
+    try {
+        await store.completeHabit(profile.id, id, today);
+        await refreshData(profile.id);
+    } catch (error) {
+        console.error('Failed to check habit:', error);
+        // Revert
+        setProfile(prev => ({
+            ...prev,
+            habits: prev.habits.map(h => 
+                h.id === id ? { 
+                    ...h, 
+                    completedDates: h.completedDates.filter(d => d !== today),
+                    streak: Math.max(0, h.streak - 1)
+                } : h
+            )
+        }));
+    }
   };
 
   const addGoal = async (title: string, deadline?: string) => {

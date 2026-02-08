@@ -2,15 +2,12 @@
 
 import { useState } from 'react';
 import { useUser } from '@/lib/store';
-import { SectorGuard } from '@/components/SectorGuard';
 import { Plus, X, Zap, Check, Calendar, Trash2 } from 'lucide-react';
 import { clsx } from 'clsx';
 
 export default function HabitsPage() {
     return (
-        <SectorGuard sector="Habits">
-            <HabitsContent />
-        </SectorGuard>
+        <HabitsContent />
     );
 }
 

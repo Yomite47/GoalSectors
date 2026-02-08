@@ -78,7 +78,7 @@ export class OpikClient {
             await this.client.flush();
             
             // Accessing internal data ID - this matches the SDK usage examples
-            // @ts-ignore
+            // @ts-expect-error - Opik SDK types might be missing or incomplete
             return trace.data?.id || trace.id; 
         } catch (error) {
             console.error("[Opik] Failed to log trace:", error);
