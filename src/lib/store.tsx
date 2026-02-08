@@ -127,9 +127,17 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             createdAt: t.created_at
         }));
 
+        // Load local prefs
+        const savedName = localStorage.getItem('goalsectors_user_name') || '';
+        const savedPrefsStr = localStorage.getItem('goalsectors_user_prefs');
+        const savedPrefs = savedPrefsStr ? JSON.parse(savedPrefsStr) : {};
+
         setProfile(prev => ({
             ...prev,
             id: userId,
+            name: savedName,
+            notificationsEnabled: savedPrefs.notificationsEnabled,
+            notificationTime: savedPrefs.notificationTime,
             enabledSectors: sectors as Sector[],
             goals: uiGoals,
             tasks: uiTasks,
@@ -166,6 +174,21 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     // Persist changes
     if (updates.enabledSectors) {
         await store.setEnabledSectors(profile.id, updates.enabledSectors);
+    }
+
+    // Persist local prefs
+    if (updates.name !== undefined) {
+        localStorage.setItem('goalsectors_user_name', updates.name);
+    }
+    if (updates.notificationsEnabled !== undefined || updates.notificationTime !== undefined) {
+        const currentPrefsStr = localStorage.getItem('goalsectors_user_prefs');
+        const currentPrefs = currentPrefsStr ? JSON.parse(currentPrefsStr) : {};
+        const newPrefs = {
+            ...currentPrefs,
+            ...(updates.notificationsEnabled !== undefined && { notificationsEnabled: updates.notificationsEnabled }),
+            ...(updates.notificationTime !== undefined && { notificationTime: updates.notificationTime }),
+        };
+        localStorage.setItem('goalsectors_user_prefs', JSON.stringify(newPrefs));
     }
   };
 

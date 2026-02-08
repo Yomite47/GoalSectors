@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useUser } from '@/lib/store';
 import { useToast } from '@/components/ToastContext';
 import { CheckSquare, Zap, Target, Settings, Plus, Check, Circle, ArrowRight, Bell } from 'lucide-react';
@@ -14,6 +14,34 @@ export default function DashboardPage() {
   const { showToast } = useToast();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
+
+  // Daily Reminder Scheduler
+  useEffect(() => {
+    if (!profile.notificationsEnabled || !profile.notificationTime) return;
+    
+    const now = new Date();
+    const [hours, minutes] = profile.notificationTime.split(':').map(Number);
+    const target = new Date();
+    target.setHours(hours, minutes, 0, 0);
+    
+    // If target time is in the past for today, schedule for tomorrow? 
+    // For simplicity, we only schedule if it's in the future for today.
+    // A more robust system would check last notification date.
+    
+    if (target > now) {
+        const diff = target.getTime() - now.getTime();
+        console.log(`Scheduling daily reminder in ${Math.round(diff/1000/60)} minutes`);
+        
+        const timer = setTimeout(() => {
+            scheduleNotification('GoalSectors Reminder', 0, {
+                body: 'Time to check your goals and tasks!',
+                requireInteraction: true
+            });
+        }, diff);
+        
+        return () => clearTimeout(timer);
+    }
+  }, [profile.notificationsEnabled, profile.notificationTime]);
 
   if (isLoading) return <div className="p-4 flex justify-center items-center h-full text-gray-400">Loading...</div>;
 
@@ -62,7 +90,9 @@ export default function DashboardPage() {
     <div className="space-y-8 relative pb-20">
       <header className="flex justify-between items-center pt-2">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Dashboard</h1>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+             {profile.name ? `Hi, ${profile.name.split(' ')[0]}` : 'Dashboard'}
+          </h1>
           <p className="text-gray-500 font-medium text-sm mt-1 uppercase tracking-wide">{todayStr}</p>
         </div>
         <Link href="/app/settings" className="p-3 text-gray-400 hover:bg-gray-100 hover:text-gray-900 rounded-full transition-colors">

@@ -46,4 +46,6 @@ export interface UserProfile {
   habits: Habit[];
   goals: Goal[];
   onboardingCompleted: boolean;
+  notificationsEnabled?: boolean;
+  notificationTime?: string;
 }

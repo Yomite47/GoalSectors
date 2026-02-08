@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { useUser } from '@/lib/store';
-import { CheckSquare, Zap, Target, Plus } from 'lucide-react';
+import { CheckSquare, Zap, Target, Plus, User, Bell, Trash2, LogOut } from 'lucide-react';
 import { clsx } from 'clsx';
 import { Sector } from '@/types';
 import PremiumModal from '@/components/PremiumModal';
+import { requestNotificationPermission } from '@/lib/notifications';
 
 export default function SettingsPage() {
   const { profile, updateProfile, addGoal, seedDemoData } = useUser();
@@ -33,17 +34,59 @@ export default function SettingsPage() {
 
   const handleUpgrade = () => {
     // In a real app, redirect to Stripe
-    // window.location.href = 'https://buy.stripe.com/mock-link';
-    
-    // For demo/prototype:
     updateProfile({ isPremium: true });
     setIsPremiumModalOpen(false);
     alert("🎉 Welcome to Premium! (Mock Purchase)");
   };
 
+  const handleNotificationToggle = async () => {
+    if (!profile.notificationsEnabled) {
+      const granted = await requestNotificationPermission();
+      if (granted) {
+        updateProfile({ notificationsEnabled: true });
+        if (!profile.notificationTime) {
+            updateProfile({ notificationTime: '09:00' });
+        }
+      } else {
+        alert('Notification permission denied. Please enable them in your browser settings.');
+      }
+    } else {
+      updateProfile({ notificationsEnabled: false });
+    }
+  };
+
+  const handleResetApp = () => {
+    if (confirm('Are you sure you want to reset all data? This cannot be undone.')) {
+        localStorage.clear();
+        window.location.reload();
+    }
+  };
+
   return (
-    <div className="space-y-8 pb-20">
+    <div className="space-y-8 pb-32">
       <h1 className="text-2xl font-bold">Settings</h1>
+
+      {/* Profile Section */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-bold text-gray-700">Profile</h2>
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-4">
+            <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                    <User size={32} />
+                </div>
+                <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-500 mb-1">Display Name</label>
+                    <input 
+                        type="text" 
+                        value={profile.name || ''} 
+                        onChange={(e) => updateProfile({ name: e.target.value })}
+                        placeholder="Enter your name"
+                        className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                </div>
+            </div>
+        </div>
+      </section>
 
       {/* Subscription Section */}
       <section className="space-y-4">
@@ -126,6 +169,51 @@ export default function SettingsPage() {
               </button>
             );
           })}
+        </div>
+      </section>
+
+      {/* Notifications Section */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-bold text-gray-700">Notifications</h2>
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm space-y-6">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="bg-purple-100 text-purple-600 p-2 rounded-lg">
+                        <Bell size={24} />
+                    </div>
+                    <div>
+                        <div className="font-bold text-gray-900">Daily Reminders</div>
+                        <div className="text-sm text-gray-500">Get notified to check your goals</div>
+                    </div>
+                </div>
+                <button 
+                    onClick={handleNotificationToggle}
+                    className={clsx(
+                        "w-12 h-6 rounded-full transition-colors relative",
+                        profile.notificationsEnabled ? "bg-blue-600" : "bg-gray-200"
+                    )}
+                >
+                    <div className={clsx(
+                        "w-4 h-4 bg-white rounded-full absolute top-1 transition-all shadow-sm",
+                        profile.notificationsEnabled ? "left-7" : "left-1"
+                    )} />
+                </button>
+            </div>
+
+            {profile.notificationsEnabled && (
+                <div className="pt-4 border-t border-gray-100">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Reminder Time</label>
+                    <input 
+                        type="time" 
+                        value={profile.notificationTime || '09:00'}
+                        onChange={(e) => updateProfile({ notificationTime: e.target.value })}
+                        className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                        Note: Notifications work best when the app is open in a tab on your computer or phone.
+                    </p>
+                </div>
+            )}
         </div>
       </section>
 
@@ -218,6 +306,24 @@ export default function SettingsPage() {
         </div>
       </section>
       */}
+
+      {/* Data Management */}
+      <section className="space-y-4 pt-4 border-t">
+        <h2 className="text-lg font-bold text-red-600">Danger Zone</h2>
+        <div className="bg-red-50 border border-red-100 p-4 rounded-xl flex items-center justify-between">
+            <div>
+                <div className="font-bold text-red-900">Reset App Data</div>
+                <div className="text-sm text-red-700">Clear all tasks, goals, and habits.</div>
+            </div>
+            <button 
+                onClick={handleResetApp}
+                className="bg-white border border-red-200 text-red-600 px-4 py-2 rounded-lg font-bold hover:bg-red-50 transition-colors flex items-center gap-2"
+            >
+                <Trash2 size={16} />
+                Reset
+            </button>
+        </div>
+      </section>
 
       <div className="h-10"></div>
     </div>
