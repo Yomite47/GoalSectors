@@ -1,4 +1,6 @@
-import { Opik } from 'opik';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Opik } from "opik";
+
 
 export interface OpikConfig {
     apiKey: string;

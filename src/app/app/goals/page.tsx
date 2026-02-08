@@ -27,7 +27,6 @@ export default function GoalsPage() {
   };
 
   return (
-    <SectorGuard sector="Goals">
       <div className="space-y-6 pb-32 px-4 pt-4">
         {isLoading && (
              <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
@@ -166,6 +165,5 @@ export default function GoalsPage() {
           </div>
         )}
       </div>
-    </SectorGuard>
   );
 }

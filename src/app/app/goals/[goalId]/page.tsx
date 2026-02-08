@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useUser } from '@/lib/store';
-import { SectorGuard } from '@/components/SectorGuard';
 import { WeeklyPlan } from '@/types';
 import { ArrowLeft, Calendar, CheckCircle2, Circle, Plus, Trash2, Wand2, Save } from 'lucide-react';
 import Link from 'next/link';
@@ -54,9 +53,7 @@ export default function GoalDetailPage() {
 
   if (!goal) {
     return (
-        <SectorGuard sector="Goals">
-            <div className="p-4">Goal not found</div>
-        </SectorGuard>
+        <div className="p-4">Goal not found</div>
     );
   }
 
@@ -101,7 +98,6 @@ export default function GoalDetailPage() {
   };
 
   return (
-    <SectorGuard sector="Goals">
       <div className="space-y-8 pb-20">
         {/* Header */}
         <div>
@@ -236,6 +232,5 @@ export default function GoalDetailPage() {
           </div>
         )}
       </div>
-    </SectorGuard>
   );
 }
