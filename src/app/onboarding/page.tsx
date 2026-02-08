@@ -18,7 +18,7 @@ export default function OnboardingPage() {
   const router = useRouter();
   const { profile, updateProfile, addGoal } = useUser();
   const [step, setStep] = useState<1 | 2>(1);
-  const [selectedSectors, setSelectedSectors] = useState<Sector[]>(['Productivity', 'Habits', 'Goals']);
+  const [selectedSectors, setSelectedSectors] = useState<Sector[]>([]);
   const [goals, setGoals] = useState<{ title: string; deadline: string }[]>([{ title: '', deadline: '' }]);
   const [isRedirecting, setIsRedirecting] = useState(false);
 

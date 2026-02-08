@@ -34,6 +34,8 @@ create table if not exists milestones (
   title text not null,
   target_date date,
   completed boolean default false,
+  created_by text default 'user',
+  source_run_id uuid,
   created_at timestamptz default now()
 );
 
@@ -55,6 +57,8 @@ create table if not exists tasks (
   title text not null,
   due_date date null,
   status text default 'open',
+  created_by text default 'user',
+  source_run_id uuid,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -73,6 +77,8 @@ create table if not exists habits (
   user_id uuid references users(id) not null,
   title text not null,
   frequency text default 'daily',
+  created_by text default 'user',
+  source_run_id uuid,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -95,6 +101,7 @@ create table if not exists ai_runs (
   response text not null,
   schema_valid boolean default true,
   latency_ms int default 0,
+  prompt_version text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -114,7 +121,17 @@ create table if not exists ai_evals (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- 12. Daily Check-ins
+-- 12. AI Feedback
+create table if not exists ai_feedback (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) NOT NULL,
+    run_id UUID REFERENCES ai_runs(id) ON DELETE CASCADE NOT NULL,
+    helpful BOOLEAN NOT NULL,
+    comment TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 13. Daily Check-ins
 create table if not exists daily_checkins (
     id uuid primary key default uuid_generate_v4(),
     user_id uuid references users(id) not null,
@@ -137,3 +154,6 @@ create index if not exists idx_habit_logs_user on habit_logs(user_id);
 create index if not exists idx_ai_runs_user on ai_runs(user_id);
 create index if not exists idx_ai_evals_user_id on ai_evals(user_id);
 create index if not exists idx_daily_checkins_user on daily_checkins(user_id);
+create index if not exists idx_ai_feedback_run_id on ai_feedback(run_id);
+create index if not exists idx_tasks_created_by on tasks(user_id, created_by);
+create index if not exists idx_habits_created_by on habits(user_id, created_by);
