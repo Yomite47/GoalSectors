@@ -23,11 +23,26 @@ const CreateGoalPlanSchema = z.object({
   }))
 });
 
+const DeleteTaskSchema = z.object({
+  task_title: z.string().describe("The exact title of the task to delete")
+});
+
+const DeleteHabitSchema = z.object({
+  habit_title: z.string().describe("The exact title of the habit to delete")
+});
+
+const DeleteGoalSchema = z.object({
+  goal_title: z.string().describe("The exact title of the goal to delete")
+});
+
 // Action Union
 const ActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("CREATE_TASK"), payload: CreateTaskSchema }),
   z.object({ type: z.literal("CREATE_HABIT"), payload: CreateHabitSchema }),
-  z.object({ type: z.literal("CREATE_GOAL_PLAN"), payload: CreateGoalPlanSchema })
+  z.object({ type: z.literal("CREATE_GOAL_PLAN"), payload: CreateGoalPlanSchema }),
+  z.object({ type: z.literal("DELETE_TASK"), payload: DeleteTaskSchema }),
+  z.object({ type: z.literal("DELETE_HABIT"), payload: DeleteHabitSchema }),
+  z.object({ type: z.literal("DELETE_GOAL"), payload: DeleteGoalSchema })
 ]);
 
 // Top-level Response

@@ -154,6 +154,15 @@ export class LocalStore implements DataStore {
         }
     }
 
+    async deleteGoal(userId: string, goalId: string): Promise<void> {
+        await delay(100);
+        const user = this.getLocalUser(userId);
+        if (user.goals) {
+            user.goals = user.goals.filter((g: any) => g.id !== goalId);
+            this.saveLocalUser(user);
+        }
+    }
+
     async upsertWeeklyPlan(userId: string, goalId: string, weekStartISO: string, focus: string): Promise<void> {
         await delay(100);
         const user = this.getLocalUser(userId);
@@ -251,6 +260,15 @@ export class LocalStore implements DataStore {
         }
     }
 
+    async deleteTask(userId: string, taskId: string): Promise<void> {
+        await delay(100);
+        const user = this.getLocalUser(userId);
+        if (user && user.tasks) {
+            user.tasks = user.tasks.filter((t: any) => t.id !== taskId);
+            this.saveLocalUser(user);
+        }
+    }
+
     async createHabit(userId: string, title: string, frequency: 'daily' = 'daily', createdBy: 'user'|'ai' = 'user', sourceRunId?: string | null): Promise<Habit> {
         await delay(100);
         const user = this.getLocalUser(userId);
@@ -281,6 +299,15 @@ export class LocalStore implements DataStore {
             created_by: h.created_by,
             source_run_id: h.source_run_id
         }));
+    }
+
+    async deleteHabit(userId: string, habitId: string): Promise<void> {
+        await delay(100);
+        const user = this.getLocalUser(userId);
+        if (user && user.habits) {
+            user.habits = user.habits.filter((h: any) => h.id !== habitId);
+            this.saveLocalUser(user);
+        }
     }
 
     async completeHabit(userId: string, habitId: string, dateISO: string): Promise<void> {

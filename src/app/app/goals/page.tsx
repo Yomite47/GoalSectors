@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import { useUser } from '@/lib/store';
 import { SectorGuard } from '@/components/SectorGuard';
-import { Plus, Calendar, Target, ChevronRight, X } from 'lucide-react';
+import { Plus, Calendar, Target, ChevronRight, X, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function GoalsPage() {
-  const { profile, addGoal } = useUser();
+  const { profile, addGoal, deleteGoal } = useUser();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [deadline, setDeadline] = useState('');
@@ -74,7 +74,20 @@ export default function GoalsPage() {
                       </span>
                     </div>
                   </div>
-                  <ChevronRight className="text-gray-300" size={20} />
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (confirm('Are you sure you want to delete this goal?')) {
+                          deleteGoal(goal.id);
+                        }
+                      }}
+                      className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                    <ChevronRight className="text-gray-300" size={20} />
+                  </div>
                 </div>
                 
                 {/* Progress bar placeholder - can be real later based on milestone completion */}

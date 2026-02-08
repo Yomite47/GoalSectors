@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useUser } from '@/lib/store';
 import { SectorGuard } from '@/components/SectorGuard';
-import { Plus, X, Zap, Check, Calendar } from 'lucide-react';
+import { Plus, X, Zap, Check, Calendar, Trash2 } from 'lucide-react';
 import { clsx } from 'clsx';
 
 export default function HabitsPage() {
@@ -15,7 +15,7 @@ export default function HabitsPage() {
 }
 
 function HabitsContent() {
-    const { profile, addHabit, checkHabit } = useUser();
+    const { profile, addHabit, checkHabit, deleteHabit } = useUser();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [newHabitTitle, setNewHabitTitle] = useState('');
 
@@ -76,7 +76,19 @@ function HabitsContent() {
                             <div key={habit.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                                 <div className="p-4 flex items-center justify-between">
                                     <div>
-                                        <h3 className="font-bold text-gray-900 text-lg">{habit.title}</h3>
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="font-bold text-gray-900 text-lg">{habit.title}</h3>
+                                            <button 
+                                                onClick={() => {
+                                                    if (confirm('Are you sure you want to delete this habit?')) {
+                                                        deleteHabit(habit.id);
+                                                    }
+                                                }}
+                                                className="text-gray-300 hover:text-red-500 transition-colors"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
                                         <div className="flex items-center gap-2 mt-1">
                                             <span className="text-xs font-bold px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">
                                                 Streak: {habit.streak} 🔥

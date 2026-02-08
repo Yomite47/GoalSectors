@@ -112,6 +112,11 @@ export class SupabaseStore implements DataStore {
         await supabase.from('milestones').delete().eq('id', milestoneId).eq('user_id', userId);
     }
 
+    async deleteGoal(userId: string, goalId: string): Promise<void> {
+        if (!supabase) throw new Error('Supabase client not initialized');
+        await supabase.from('goals').delete().eq('id', goalId).eq('user_id', userId);
+    }
+
     async upsertWeeklyPlan(userId: string, goalId: string, weekStartISO: string, focus: string): Promise<void> {
         if (!supabase) throw new Error('Supabase client not initialized');
         
@@ -185,6 +190,11 @@ export class SupabaseStore implements DataStore {
         await supabase.from('tasks').update({ due_date: newDateISO }).eq('id', taskId).eq('user_id', userId);
     }
 
+    async deleteTask(userId: string, taskId: string): Promise<void> {
+        if (!supabase) throw new Error('Supabase client not initialized');
+        await supabase.from('tasks').delete().eq('id', taskId).eq('user_id', userId);
+    }
+
     async createHabit(userId: string, title: string, frequency: 'daily' = 'daily', createdBy: 'user'|'ai' = 'user', sourceRunId?: string | null): Promise<Habit> {
         if (!supabase) throw new Error('Supabase client not initialized');
         
@@ -214,6 +224,11 @@ export class SupabaseStore implements DataStore {
             .order('created_at', { ascending: true });
             
         return (data || []) as Habit[];
+    }
+
+    async deleteHabit(userId: string, habitId: string): Promise<void> {
+        if (!supabase) throw new Error('Supabase client not initialized');
+        await supabase.from('habits').delete().eq('id', habitId).eq('user_id', userId);
     }
 
     async completeHabit(userId: string, habitId: string, dateISO: string): Promise<void> {
@@ -439,7 +454,7 @@ export class SupabaseStore implements DataStore {
         const { count: habitCount } = await supabase.from('habits').select('*', { count: 'exact', head: true }).eq('user_id', userId);
         
         if ((taskCount || 0) > 0 || (habitCount || 0) > 0) {
-            console.log("Data already exists, skipping seed.");
+            // console.log("Data already exists, skipping seed.");
             return;
         }
 

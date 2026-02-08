@@ -12,7 +12,8 @@ import {
     Check, 
     Clock, 
     X,
-    CalendarDays
+    CalendarDays,
+    Trash2
 } from 'lucide-react';
 
 export default function TasksPage() {
@@ -24,7 +25,7 @@ export default function TasksPage() {
 }
 
 function TasksContent() {
-    const { addTask, toggleTask, rescheduleTask, getTasksForDate } = useUser();
+    const { addTask, toggleTask, rescheduleTask, getTasksForDate, deleteTask } = useUser();
     
     // State
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -99,6 +100,15 @@ function TasksContent() {
             setRescheduleDate('');
             
             // Refresh list (task should disappear if moved to another date)
+            const data = await getTasksForDate(selectedDate);
+            setTasks(data);
+        }
+    };
+
+    const handleDelete = async (taskId: string) => {
+        if (confirm('Are you sure you want to delete this task?')) {
+            await deleteTask(taskId);
+            // Refresh list
             const data = await getTasksForDate(selectedDate);
             setTasks(data);
         }
@@ -200,10 +210,18 @@ function TasksContent() {
                                     setRescheduleTaskId(task.id);
                                     setRescheduleDate(selectedDate); // Default to current date of task
                                 }}
-                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg -mr-2"
+                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
                                 aria-label="Reschedule"
                             >
                                 <Clock size={18} />
+                            </button>
+                            
+                            <button
+                                onClick={() => handleDelete(task.id)}
+                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg -mr-2"
+                                aria-label="Delete"
+                            >
+                                <Trash2 size={18} />
                             </button>
                         </div>
                     ))
@@ -297,20 +315,14 @@ function TasksContent() {
                             <p className="text-gray-500 text-sm mb-4">
                                 Choose a new date for this task.
                             </p>
-
-                            <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    New Date
-                                </label>
-                                <input
-                                    type="date"
-                                    value={rescheduleDate}
-                                    onChange={(e) => setRescheduleDate(e.target.value)}
-                                    className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                                    min={new Date().toISOString().split('T')[0]}
-                                />
-                            </div>
-
+                            
+                            <input
+                                type="date"
+                                value={rescheduleDate}
+                                onChange={(e) => setRescheduleDate(e.target.value)}
+                                className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none mb-6"
+                            />
+                            
                             <div className="flex gap-3">
                                 <button
                                     type="button"

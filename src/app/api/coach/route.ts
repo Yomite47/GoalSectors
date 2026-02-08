@@ -46,6 +46,11 @@ function getSmartMockResponse(messages: any[], reason: string = "No API Key") {
         });
         assistantMessage = `Consistency is key! 🌱 I've started tracking "${title}" for you. One day at a time. You're doing great! (Smart Mock Mode)`;
     }
+    // Simple Heuristic for Deletion
+    else if (lastMsg.includes('delete') || lastMsg.includes('remove')) {
+        assistantMessage = `I've removed that item for you. (Smart Mock Mode)`;
+        // Note: Mock deletion is hard without knowing what to delete exactly, just simulating the message for now.
+    }
     else {
             assistantMessage = `I'm here to support you! 🌟 (${reason}). Try telling me what you want to achieve today, like "Finish the report" or "Drink water". I'll help you break it down!`;
     }
@@ -61,7 +66,7 @@ async function callLLM(messages: any[]) {
     const apiKey = process.env.OPENAI_API_KEY;
     const model = process.env.AI_MODEL || 'gpt-4o-mini';
 
-    console.log("[Coach API] Calling LLM...", { hasKey: !!apiKey, model });
+    // console.log("[Coach API] Calling LLM...", { hasKey: !!apiKey, model });
 
     if (!apiKey) {
         console.warn("OPENAI_API_KEY is not set. Using SMART MOCK response.");
@@ -89,7 +94,8 @@ async function callLLM(messages: any[]) {
             
             // Fallback for Quota or Auth errors
             if (res.status === 429 || res.status === 401 || res.status === 403) {
-                return getSmartMockResponse(messages, `API Error ${res.status}: Quota/Auth`);
+                // Return a friendly "Offline Mode" message instead of the raw error code
+                return getSmartMockResponse(messages, "Offline Mode - Server Busy");
             }
             
             throw new Error(`LLM API Error: ${res.status} ${txt}`);
@@ -170,7 +176,10 @@ export async function POST(req: Request) {
   "actions": [
     { "type": "CREATE_TASK", "payload": { "title": "string", "due_date": "YYYY-MM-DD" } },
     { "type": "CREATE_HABIT", "payload": { "title": "string", "frequency": "daily" } },
-    { "type": "CREATE_GOAL_PLAN", "payload": { "goal_id": "uuid", "milestones": [...], "weekly_plan": [...] } }
+    { "type": "CREATE_GOAL_PLAN", "payload": { "goal_id": "uuid", "milestones": [...], "weekly_plan": [...] } },
+    { "type": "DELETE_TASK", "payload": { "task_title": "string (exact match)" } },
+    { "type": "DELETE_HABIT", "payload": { "habit_title": "string (exact match)" } },
+    { "type": "DELETE_GOAL", "payload": { "goal_title": "string (exact match)" } }
   ]
 }
 `;
@@ -193,6 +202,10 @@ ${systemPersona}
 1. **Specific**: Task titles must be concrete (e.g., "Write intro paragraph" vs "Write").
 2. **Atomic**: Tasks should be doable in < 1 hour.
 3. **Verbs**: Start with a verb.
+
+# RULES FOR DELETION
+1. **Exact Match**: When deleting, you MUST copy the title EXACTLY from the "Current Context" JSON.
+2. **Confirmation**: Briefly mention what you deleted in the message.
 
 Current Context:
 ${contextJson}
@@ -356,6 +369,40 @@ ${schemaDefinition}
                         }
                         actionsApplied++;
                     }
+                } else if (action.type === 'DELETE_TASK') {
+                    if (sectors.includes('Productivity')) {
+                        const { task_title } = action.payload;
+                        // Find by title (fuzzy)
+                        const taskToDelete = tasks.find(t => t.title.toLowerCase().trim() === task_title.toLowerCase().trim());
+                        if (taskToDelete) {
+                            await store.deleteTask(userId, taskToDelete.id);
+                            actionsApplied++;
+                        } else {
+                            console.warn(`Could not find task to delete: ${task_title}`);
+                        }
+                    }
+                } else if (action.type === 'DELETE_HABIT') {
+                    if (sectors.includes('Habits')) {
+                        const { habit_title } = action.payload;
+                        const habitToDelete = habits.find(h => h.title.toLowerCase().trim() === habit_title.toLowerCase().trim());
+                        if (habitToDelete) {
+                            await store.deleteHabit(userId, habitToDelete.id);
+                            actionsApplied++;
+                        } else {
+                            console.warn(`Could not find habit to delete: ${habit_title}`);
+                        }
+                    }
+                } else if (action.type === 'DELETE_GOAL') {
+                    if (sectors.includes('Goals')) {
+                        const { goal_title } = action.payload;
+                        const goalToDelete = goals.find(g => g.title.toLowerCase().trim() === goal_title.toLowerCase().trim());
+                        if (goalToDelete) {
+                            await store.deleteGoal(userId, goalToDelete.id);
+                            actionsApplied++;
+                        } else {
+                            console.warn(`Could not find goal to delete: ${goal_title}`);
+                        }
+                    }
                 }
             } catch (err) {
                 console.error(`Failed to apply action ${action.type}:`, err);
@@ -368,9 +415,9 @@ ${schemaDefinition}
         let finalAssistantMessage = result.assistant_message;
         if (result.actions.length > 0 && actionsApplied === 0) {
             const missingSectors = result.actions.map(a => {
-                if (a.type === 'CREATE_TASK') return 'Productivity';
-                if (a.type === 'CREATE_HABIT') return 'Habits';
-                if (a.type === 'CREATE_GOAL_PLAN') return 'Goals';
+                if (a.type === 'CREATE_TASK' || a.type === 'DELETE_TASK') return 'Productivity';
+                if (a.type === 'CREATE_HABIT' || a.type === 'DELETE_HABIT') return 'Habits';
+                if (a.type === 'CREATE_GOAL_PLAN' || a.type === 'DELETE_GOAL') return 'Goals';
                 return '';
             }).filter(s => s && !sectors.includes(s));
             

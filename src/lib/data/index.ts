@@ -11,10 +11,10 @@ export const getStore = (): DataStore => {
 
     // Check if Supabase is configured
     if (supabase) {
-        console.log('Using Supabase Store');
+        // console.log('Using Supabase Store');
         storeInstance = new SupabaseStore();
     } else {
-        console.log('Using Local Storage Fallback');
+        // console.log('Using Local Storage Fallback');
         storeInstance = new LocalStore();
     }
 

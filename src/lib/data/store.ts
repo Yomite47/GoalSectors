@@ -8,6 +8,7 @@ export interface DataStore {
     
     createGoal(userId: string, title: string, deadline?: string | null): Promise<Goal>;
     listGoals(userId: string): Promise<Goal[]>;
+    deleteGoal(userId: string, goalId: string): Promise<void>;
     
     createMilestone(userId: string, goalId: string, title: string, targetDateISO?: string | null, createdBy?: 'user'|'ai', sourceRunId?: string | null): Promise<Milestone>;
     listMilestones(userId: string, goalId: string): Promise<Milestone[]>;
@@ -21,9 +22,11 @@ export interface DataStore {
     listTasksForDate(userId: string, dateISO: string): Promise<Task[]>;
     completeTask(userId: string, taskId: string): Promise<void>;
     rescheduleTask(userId: string, taskId: string, newDateISO: string): Promise<void>;
+    deleteTask(userId: string, taskId: string): Promise<void>;
     
     createHabit(userId: string, title: string, frequency?: 'daily', createdBy?: 'user'|'ai', sourceRunId?: string | null): Promise<Habit>;
     listHabits(userId: string): Promise<Habit[]>;
+    deleteHabit(userId: string, habitId: string): Promise<void>;
     completeHabit(userId: string, habitId: string, dateISO: string): Promise<void>;
     listHabitLogs(userId: string, habitId: string, fromISO: string, toISO: string): Promise<string[]>;
     getHabitStreaks(userId: string): Promise<HabitStreak[]>;

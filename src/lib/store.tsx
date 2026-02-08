@@ -22,11 +22,14 @@ interface UserContextType {
   resetProfile: () => void;
   addTask: (title: string, date?: string) => void;
   toggleTask: (id: string) => void;
+  deleteTask: (id: string) => Promise<void>;
   rescheduleTask: (id: string, newDate: string) => void;
   getTasksForDate: (date: string) => Promise<UITask[]>;
   addHabit: (title: string) => void;
+  deleteHabit: (id: string) => Promise<void>;
   checkHabit: (id: string) => void;
   addGoal: (title: string, deadline?: string) => void;
+  deleteGoal: (id: string) => Promise<void>;
   addMilestone: (goalId: string, title: string, targetDate?: string) => Promise<void>;
   deleteMilestone: (goalId: string, milestoneId: string) => Promise<void>;
   upsertWeeklyPlan: (goalId: string, weekStart: string, focus: string) => Promise<void>;
@@ -201,6 +204,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     refreshData(profile.id);
   };
 
+  const deleteTask = async (id: string) => {
+    // Optimistic
+    setProfile(prev => ({
+        ...prev,
+        tasks: prev.tasks.filter(t => t.id !== id)
+    }));
+    await store.deleteTask(profile.id, id);
+  };
+
   const rescheduleTask = async (id: string, newDate: string) => {
     // Optimistic: If moved from today to future, remove from today's list
     // If moved to today, we can't easily add it without data, so just refresh
@@ -233,6 +245,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     refreshData(profile.id);
   };
 
+  const deleteHabit = async (id: string) => {
+    // Optimistic
+    setProfile(prev => ({
+        ...prev,
+        habits: prev.habits.filter(h => h.id !== id)
+    }));
+    await store.deleteHabit(profile.id, id);
+  };
+
   const checkHabit = async (id: string) => {
     const today = new Date().toISOString().split('T')[0];
     
@@ -255,6 +276,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const addGoal = async (title: string, deadline?: string) => {
     await store.createGoal(profile.id, title, deadline);
     refreshData(profile.id);
+  };
+
+  const deleteGoal = async (id: string) => {
+    // Optimistic
+    setProfile(prev => ({
+        ...prev,
+        goals: prev.goals.filter(g => g.id !== id)
+    }));
+    await store.deleteGoal(profile.id, id);
   };
 
   const addMilestone = async (goalId: string, title: string, targetDate?: string) => {
@@ -294,24 +324,27 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <UserContext.Provider value={{ 
-        profile, 
-        updateProfile, 
-        resetProfile, 
-        addTask, 
-        toggleTask,
-        rescheduleTask,
-        getTasksForDate, 
-        addHabit, 
-        checkHabit, 
-        addGoal,
-        addMilestone,
-        deleteMilestone,
-        upsertWeeklyPlan,
-        getWeeklyPlans,
-        todayCheckin,
-        saveTodayCheckin,
-        isLoading,
-        seedDemoData
+      profile, 
+      updateProfile, 
+      resetProfile,
+      addTask,
+      toggleTask,
+      deleteTask,
+      rescheduleTask,
+      getTasksForDate,
+      addHabit,
+      deleteHabit,
+      checkHabit,
+      addGoal,
+      deleteGoal,
+      addMilestone,
+      deleteMilestone,
+      upsertWeeklyPlan,
+      getWeeklyPlans,
+      todayCheckin,
+      saveTodayCheckin,
+      isLoading,
+      seedDemoData
     }}>
       {children}
     </UserContext.Provider>
