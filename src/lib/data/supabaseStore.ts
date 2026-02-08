@@ -10,7 +10,7 @@ export class SupabaseStore implements DataStore {
             .from('users')
             .select('id')
             .eq('id', userId)
-            .single();
+            .maybeSingle();
 
         if (!data) {
             await supabase.from('users').insert({ id: userId });
@@ -77,16 +77,19 @@ export class SupabaseStore implements DataStore {
     async createMilestone(userId: string, goalId: string, title: string, targetDateISO?: string | null, createdBy: 'user'|'ai' = 'user', sourceRunId?: string | null): Promise<Milestone> {
         if (!supabase) throw new Error('Supabase client not initialized');
         
+        const payload: any = { 
+            user_id: userId, 
+            goal_id: goalId, 
+            title, 
+            target_date: targetDateISO
+        };
+
+        if (createdBy && createdBy !== 'user') payload.created_by = createdBy;
+        if (sourceRunId) payload.source_run_id = sourceRunId;
+        
         const { data, error } = await supabase
             .from('milestones')
-            .insert({ 
-                user_id: userId, 
-                goal_id: goalId, 
-                title, 
-                target_date: targetDateISO,
-                created_by: createdBy,
-                source_run_id: sourceRunId
-            })
+            .insert(payload)
             .select()
             .single();
             
@@ -145,16 +148,21 @@ export class SupabaseStore implements DataStore {
     async createTask(userId: string, title: string, dueDateISO: string, goalId?: string, createdBy: 'user'|'ai' = 'user', sourceRunId?: string | null): Promise<Task> {
         if (!supabase) throw new Error('Supabase client not initialized');
         
+        // Construct payload dynamically to avoid sending fields that might not exist in older schema versions
+        const payload: any = { 
+            user_id: userId, 
+            title, 
+            due_date: dueDateISO, 
+            goal_id: goalId || null
+        };
+
+        // Only add these if they are relevant/non-default to be safe with schema
+        if (createdBy && createdBy !== 'user') payload.created_by = createdBy;
+        if (sourceRunId) payload.source_run_id = sourceRunId;
+
         const { data, error } = await supabase
             .from('tasks')
-            .insert({ 
-                user_id: userId, 
-                title, 
-                due_date: dueDateISO, 
-                goal_id: goalId || null,
-                created_by: createdBy,
-                source_run_id: sourceRunId
-            })
+            .insert(payload)
             .select()
             .single();
             
@@ -198,15 +206,18 @@ export class SupabaseStore implements DataStore {
     async createHabit(userId: string, title: string, frequency: 'daily' = 'daily', createdBy: 'user'|'ai' = 'user', sourceRunId?: string | null): Promise<Habit> {
         if (!supabase) throw new Error('Supabase client not initialized');
         
+        const payload: any = { 
+            user_id: userId, 
+            title, 
+            frequency
+        };
+
+        if (createdBy && createdBy !== 'user') payload.created_by = createdBy;
+        if (sourceRunId) payload.source_run_id = sourceRunId;
+        
         const { data, error } = await supabase
             .from('habits')
-            .insert({ 
-                user_id: userId, 
-                title, 
-                frequency,
-                created_by: createdBy,
-                source_run_id: sourceRunId
-            })
+            .insert(payload)
             .select()
             .single();
             
@@ -240,7 +251,7 @@ export class SupabaseStore implements DataStore {
             .select('id')
             .eq('habit_id', habitId)
             .eq('done_date', dateISO)
-            .single();
+            .maybeSingle();
             
         if (!data) {
             await supabase
@@ -342,7 +353,7 @@ export class SupabaseStore implements DataStore {
             .select('*')
             .eq('user_id', userId)
             .eq('checkin_date', dateISO)
-            .single();
+            .maybeSingle();
             
         return data as DailyCheckin | null;
     }
