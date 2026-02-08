@@ -25,7 +25,7 @@ export default function TasksPage() {
 }
 
 function TasksContent() {
-    const { addTask, toggleTask, rescheduleTask, getTasksForDate, deleteTask } = useUser();
+    const { addTask, toggleTask, rescheduleTask, getTasksForDate, deleteTask, isLoading: isUserLoading, profile } = useUser();
     
     // State
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -42,10 +42,13 @@ function TasksContent() {
 
     // Fetch tasks when date changes
     useEffect(() => {
+        if (isUserLoading) return;
+        
         let mounted = true;
         const loadTasks = async () => {
             setIsLoading(true);
             try {
+                // console.log("Fetching tasks for", selectedDate, "User:", profile.id);
                 const data = await getTasksForDate(selectedDate);
                 if (mounted) setTasks(data);
             } catch (error) {
@@ -56,7 +59,7 @@ function TasksContent() {
         };
         loadTasks();
         return () => { mounted = false; };
-    }, [selectedDate, getTasksForDate]);
+    }, [selectedDate, getTasksForDate, isUserLoading, profile.id]);
 
     // Handlers
     const handlePrevDay = () => {
@@ -75,13 +78,19 @@ function TasksContent() {
         e.preventDefault();
         if (!newTaskTitle.trim()) return;
         
-        await addTask(newTaskTitle, selectedDate);
-        setNewTaskTitle('');
-        setIsAddModalOpen(false);
-        
-        // Refresh tasks
-        const data = await getTasksForDate(selectedDate);
-        setTasks(data);
+        try {
+            console.log("Adding task:", newTaskTitle, "Date:", selectedDate);
+            await addTask(newTaskTitle, selectedDate);
+            setNewTaskTitle('');
+            setIsAddModalOpen(false);
+            
+            // Refresh tasks
+            const data = await getTasksForDate(selectedDate);
+            setTasks(data);
+        } catch (error) {
+            console.error("Error adding task:", error);
+            alert("Failed to add task. Please try again.");
+        }
     };
 
     const handleToggle = async (taskId: string) => {
@@ -162,7 +171,7 @@ function TasksContent() {
 
             {/* Task List */}
             <div className="max-w-lg mx-auto p-4 space-y-3">
-                {isLoading ? (
+                {isLoading || isUserLoading ? (
                     <div className="text-center py-10 text-gray-400">Loading...</div>
                 ) : tasks.length === 0 ? (
                     <div className="text-center py-12 px-4">

@@ -7,24 +7,34 @@ import { Plus, Calendar, Target, ChevronRight, X, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function GoalsPage() {
-  const { profile, addGoal, deleteGoal } = useUser();
+  const { profile, addGoal, deleteGoal, isLoading } = useUser();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [deadline, setDeadline] = useState('');
 
-  const handleAdd = (e: React.FormEvent) => {
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
     
-    addGoal(title, deadline || undefined);
-    setTitle('');
-    setDeadline('');
-    setIsModalOpen(false);
+    try {
+        await addGoal(title, deadline || undefined);
+        setTitle('');
+        setDeadline('');
+        setIsModalOpen(false);
+    } catch (error) {
+        console.error("Error adding goal:", error);
+        alert("Failed to add goal. Please try again.");
+    }
   };
 
   return (
     <SectorGuard sector="Goals">
       <div className="space-y-6 pb-20">
+        {isLoading && (
+             <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+                 <div className="animate-pulse text-blue-600 font-medium">Loading goals...</div>
+             </div>
+        )}
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Goals</h1>
           <button 

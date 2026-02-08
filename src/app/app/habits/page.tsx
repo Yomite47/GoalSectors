@@ -15,7 +15,7 @@ export default function HabitsPage() {
 }
 
 function HabitsContent() {
-    const { profile, addHabit, checkHabit, deleteHabit } = useUser();
+    const { profile, addHabit, checkHabit, deleteHabit, isLoading } = useUser();
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [newHabitTitle, setNewHabitTitle] = useState('');
 
@@ -40,6 +40,11 @@ function HabitsContent() {
 
     return (
         <div className="pb-24">
+            {isLoading && (
+                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+                     <div className="animate-pulse text-yellow-600 font-medium">Loading habits...</div>
+                 </div>
+            )}
             <header className="bg-white border-b border-gray-200 px-4 py-4 sticky top-0 z-10 flex justify-between items-center">
                 <h1 className="text-xl font-bold flex items-center gap-2">
                     <Zap className="text-yellow-500 fill-yellow-500" />
