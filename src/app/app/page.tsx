@@ -75,7 +75,7 @@ export default function DashboardPage() {
   };
 
   const handleToggleTask = (taskId: string, isCompleting: boolean) => {
-    toggleTask(taskId);
+    toggleTask(taskId, isCompleting);
     if (isCompleting) {
         showToast('Task completed! Great job.', 'success');
     }
@@ -87,7 +87,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-8 relative pb-20">
+    <div className="space-y-8 relative pb-20 px-4 pt-4">
       <header className="flex justify-between items-center pt-2">
         <div>
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">

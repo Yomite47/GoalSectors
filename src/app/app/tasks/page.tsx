@@ -94,11 +94,15 @@ function TasksContent() {
     };
 
     const handleToggle = async (taskId: string) => {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
+        const newStatus = !task.completed;
+
         // Optimistic update
         setTasks(prev => prev.map(t => 
-            t.id === taskId ? { ...t, completed: !t.completed } : t
+            t.id === taskId ? { ...t, completed: newStatus } : t
         ));
-        await toggleTask(taskId);
+        await toggleTask(taskId, newStatus);
     };
 
     const handleReschedule = async (e: React.FormEvent) => {

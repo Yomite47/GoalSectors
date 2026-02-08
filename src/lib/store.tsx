@@ -21,7 +21,7 @@ interface UserContextType {
   updateProfile: (updates: Partial<UserProfile>) => void;
   resetProfile: () => void;
   addTask: (title: string, date?: string) => void;
-  toggleTask: (id: string) => void;
+  toggleTask: (id: string, isCompleted: boolean) => void;
   deleteTask: (id: string) => Promise<void>;
   rescheduleTask: (id: string, newDate: string) => void;
   getTasksForDate: (date: string) => Promise<UITask[]>;
@@ -216,14 +216,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     refreshData(profile.id);
   };
 
-  const toggleTask = async (id: string) => {
+  const toggleTask = async (id: string, isCompleted: boolean) => {
     // Optimistic UI update
     setProfile(prev => ({
         ...prev,
-        tasks: prev.tasks.map(t => t.id === id ? { ...t, completed: true } : t)
+        tasks: prev.tasks.map(t => t.id === id ? { ...t, completed: isCompleted } : t)
     }));
     
-    await store.completeTask(profile.id, id);
+    await store.toggleTask(profile.id, id, isCompleted);
     refreshData(profile.id);
   };
 

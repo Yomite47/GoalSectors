@@ -180,9 +180,9 @@ export class SupabaseStore implements DataStore {
         return (data || []) as Task[];
     }
 
-    async completeTask(userId: string, taskId: string): Promise<void> {
+    async toggleTask(userId: string, taskId: string, isCompleted: boolean): Promise<void> {
         if (!supabase) throw new Error('Supabase client not initialized');
-        await supabase.from('tasks').update({ status: 'completed' }).eq('id', taskId).eq('user_id', userId);
+        await supabase.from('tasks').update({ status: isCompleted ? 'completed' : 'open' }).eq('id', taskId).eq('user_id', userId);
     }
 
     async rescheduleTask(userId: string, taskId: string, newDateISO: string): Promise<void> {

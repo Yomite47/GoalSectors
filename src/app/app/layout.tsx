@@ -29,7 +29,7 @@ export default function AppLayout({
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      <main className="container mx-auto px-4 py-4 max-w-md">
+      <main className="container mx-auto max-w-md">
         {children}
       </main>
       <BottomNav />

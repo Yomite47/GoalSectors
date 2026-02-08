@@ -238,12 +238,12 @@ export class LocalStore implements DataStore {
         })).filter((t: Task) => t.due_date === dateISO);
     }
 
-    async completeTask(userId: string, taskId: string): Promise<void> {
+    async toggleTask(userId: string, taskId: string, isCompleted: boolean): Promise<void> {
         await delay(100);
         const user = this.getLocalUser(userId);
         if (user && user.tasks) {
             user.tasks = user.tasks.map((t: any) => 
-                t.id === taskId ? { ...t, status: 'completed', completed: true } : t
+                t.id === taskId ? { ...t, status: isCompleted ? 'completed' : 'open', completed: isCompleted } : t
             );
             this.saveLocalUser(user);
         }

@@ -20,7 +20,7 @@ export interface DataStore {
     createTask(userId: string, title: string, dueDateISO: string, goalId?: string, createdBy?: 'user'|'ai', sourceRunId?: string | null): Promise<Task>;
     linkTaskToGoal(userId: string, taskId: string, goalId: string): Promise<void>;
     listTasksForDate(userId: string, dateISO: string): Promise<Task[]>;
-    completeTask(userId: string, taskId: string): Promise<void>;
+    toggleTask(userId: string, taskId: string, isCompleted: boolean): Promise<void>;
     rescheduleTask(userId: string, taskId: string, newDateISO: string): Promise<void>;
     deleteTask(userId: string, taskId: string): Promise<void>;
     
